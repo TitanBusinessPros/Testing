@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Landing Page Builder</title>
+  <style>
+    /* === Namespaced styles (lpb-*) ===================== */
+    .lpb { --gap: 12px; --radius: 14px; --shadow: 0 6px 30px rgba(0,0,0,.08); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    .lpb * { box-sizing: border-box; }
+    .lpb-card { max-width: 980px; margin: 24px auto; padding: 20px; background:#fff; border:1px solid #e9ecef; border-radius: var(--radius); box-shadow: var(--shadow); }
+    .lpb-h1 { font-size: 1.6rem; margin: 0 0 10px; text-align:center; }
+    .lpb-h2 { font-size: 1.2rem; margin: 10px 0; }
+    .lpb-h3 { font-size: 1rem; margin: 0; }
+    .lpb-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--gap); }
+    .lpb-field { grid-column: span 12; display: flex; flex-direction: column; gap: 6px; }
+    .lpb-field > label { font-weight: 600; display:flex; align-items:center; gap:6px; }
+    .lpb-field input[type="text"], .lpb-field textarea, .lpb-field select, .lpb-field input[type="color"] { padding: 10px 12px; border:1px solid #cfd4da; border-radius: 10px; font: inherit; background:#fff; }
+    .lpb-field input[type="color"] { height: 42px; padding: 4px; }
+    .lpb-help { color:#6c757d; }
+    .lpb-row { display:flex; align-items:center; gap:12px; }
+    .lpb-between { justify-content: space-between; }
+    .lpb-check { display:flex; align-items:center; gap:8px; user-select:none; }
+    .lpb-thumb img { display:block; max-width: 260px; max-height: 140px; border-radius:10px; border:1px solid #e9ecef; }
+    .lpb-hr { border:0; height:1px; background:linear-gradient(90deg,#eee,#ddd,#eee); margin:16px 0; }
+    .lpb-actions { display:flex; justify-content:flex-end; gap:10px; margin-top: 16px; }
+    .lpb-btn { border:1px solid #cfd4da; background:#f8f9fa; padding:10px 14px; border-radius: 999px; cursor:pointer; font-weight:600; }
+    .lpb-btn:hover { background:#eff2f5; }
+    .lpb-btn-primary { border-color:#4c6ef5; background:#4c6ef5; color:#fff; }
+    .lpb-btn-primary:hover { filter: brightness(0.95); }
+    .lpb-btn-ghost { background:transparent; }
+    .lpb-sec { padding:12px; border:1px dashed #cfd4da; border-radius: 12px; margin-bottom: 12px; background:#fbfcfe; }
+    .lpb-sec .lpb-row { flex-wrap: wrap; }
+    .lpb-sec .lpb-col { flex:1 1 260px; min-width: 240px; }
+    .lpb-sec .lpb-thumb img { max-width:180px; max-height:120px; }
+    .lpb-sec-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .lpb-del { background:#ffe3e3; border-color:#ffa8a8; }
+    .lpb-del:hover { background:#ffc9c9; }
+    .lpb-move { background:#e7f5ff; border-color:#74c0fc; }
+    .lpb-move:hover { background:#d0ebff; }
+    /* Modal */
+    .lpb-modal { position: fixed; inset: 0; display:none; z-index: 9999; }
+    .lpb-modal.show { display:block; }
+    .lpb-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.35); }
+    .lpb-modal-card { position:relative; z-index:1; max-width: 980px; margin: 5vh auto; background:#fff; border-radius: 16px; box-shadow: var(--shadow); padding: 16px; border:1px solid #e9ecef; }
+    .lpb-modal-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+    .lpb-output { width:100%; height: 60vh; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; border:1px solid #e1e4e8; border-radius: 10px; padding: 10px; background:#fafbfc; }
+    .lpb-hint { margin-top: 8px; color:#6c757d; font-size:.9rem; }
+    .lpb-copyright { text-align: center; margin-top: 20px; color: #6c757d; font-size: 0.9rem; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .lpb-footer-btn { display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; background: #4c6ef5; color: white; text-decoration: none; border-radius: 999px; font-size: 0.85rem; font-weight: 500; transition: background 0.2s; }
+    .lpb-footer-btn:hover { background: #3b5bdb; }
+    .lpb-footer-btn.paste { background: #fa5252; }
+    .lpb-footer-btn.paste:hover { background: #e03131; }
+    @media (min-width: 700px) {
+      .lpb-field:nth-child(1), .lpb-field:nth-child(2), .lpb-field:nth-child(3) { grid-column: span 6; }
+      .lpb-field:nth-child(4) { grid-column: span 12; }
+    }
+    .lpb-icon-hint { width:18px; height:18px; cursor:help; }
+  </style>
+</head>
+<body>
+<section id="lpb-root" class="lpb">
+  <div class="lpb-card">
+    <h1 class="lpb-h1">Landing Page Builder</h1>
+    <div class="lpb-grid">
+      <div class="lpb-field">
+        <label>Site Title (for browser tab & SEO)</label>
+        <input id="lpb-site-title" type="text" placeholder="My Awesome Product">
+      </div>
+    </div>
+    <hr class="lpb-hr">
+    <h2 class="lpb-h2">Hero Section</h2>
+    <div class="lpb-grid">
+      <div class="lpb-field">
+        <label>Hero Heading</label>
+        <input id="lpb-hero-heading" type="text" placeholder="Build beautiful websites effortlessly">
+      </div>
+      <div class="lpb-field">
+        <label>Hero Subheading</label>
+        <textarea id="lpb-hero-sub" rows="2"></textarea>
+      </div>
+      <div class="lpb-field">
+        <label>Hero Image (upload only) 
+          <img src="trans 2.png" class="lpb-icon-hint" title="Upload JPG, PNG, or WebP. Recommended width 1200px.">
+        </label>
+        <input id="lpb-hero-img" type="file" accept="image/*">
+        <div id="lpb-hero-thumb" class="lpb-thumb"></div>
+      </div>
+    </div>
+    <hr class="lpb-hr">
+    <div class="lpb-row lpb-between">
+      <h2 class="lpb-h2">Content Sections</h2>
+      <button id="lpb-add-section" class="lpb-btn">+ Add Section</button>
+    </div>
+    <div id="lpb-sections"></div>
+    <div class="lpb-actions">
+      <button id="lpb-generate" class="lpb-btn lpb-btn-primary">Make It Code</button>
+    </div>
+  </div>
+
+  <!-- Code Modal -->
+  <div id="lpb-modal" class="lpb-modal" aria-hidden="true">
+    <div class="lpb-modal-card">
+      <div class="lpb-modal-head">
+        <h3 class="lpb-h3">Your Landing Page HTML</h3>
+        <button id="lpb-close" class="lpb-btn lpb-btn-ghost">×</button>
+      </div>
+      <textarea id="lpb-output" class="lpb-output" readonly></textarea>
+    </div>
+    <div class="lpb-backdrop"></div>
+  </div>
+</section>
+
+<script>
+(function(){
+  const sectionsEl = document.getElementById("lpb-sections");
+  const state = { sections: [] };
+
+  const readFileAsDataURL = file => new Promise((res,rej)=>{
+    const fr = new FileReader();
+    fr.onload = ()=>res(fr.result);
+    fr.onerror = rej;
+    fr.readAsDataURL(file);
+  });
+
+  function fetchStockImage(query) {
+    return `https://source.unsplash.com/600x400/?${encodeURIComponent(query)}`;
+  }
+
+  function addSection(prefill={}) {
+    const id = Date.now()+Math.random();
+    const sec = { id, title:"", text:"", imgData:null, alt:"", ...prefill };
+    state.sections.push(sec);
+    renderSections();
+  }
+
+  function renderSections() {
+    sectionsEl.innerHTML = "";
+    state.sections.forEach((sec, idx)=>{
+      const wrapper = document.createElement("div");
+      wrapper.className = "lpb-sec";
+      wrapper.innerHTML = `
+        <div class="lpb-sec-head"><strong>Section ${idx+1}</strong></div>
+        <div class="lpb-field"><label>Title</label>
+          <input type="text" data-key="title" value="${sec.title}">
+        </div>
+        <div class="lpb-field">
+          <label>Image 
+            <img src="trans 2.png" class="lpb-icon-hint" 
+                 title="Upload JPG/PNG/WebP (600×400 recommended) or search free stock photo.">
+          </label>
+          <input type="file" accept="image/*" data-key="img">
+          <button class="lpb-btn" data-act="stock">Search Free Images</button>
+          <div class="lpb-thumb">${sec.imgData?`<img src="${sec.imgData}">`:""}</div>
+        </div>
+        <div class="lpb-field"><label>Text</label>
+          <textarea rows="3" data-key="text">${sec.text}</textarea>
+        </div>`;
+      sectionsEl.appendChild(wrapper);
+
+      wrapper.querySelector("[data-key=title]").addEventListener("input", e=>sec.title=e.target.value);
+      wrapper.querySelector("[data-key=text]").addEventListener("input", e=>sec.text=e.target.value);
+      wrapper.querySelector("[data-key=img]").addEventListener("change", async e=>{
+        const f = e.target.files[0]; if (!f) return;
+        sec.imgData = await readFileAsDataURL(f);
+        renderSections();
+      });
+      wrapper.querySelector("[data-act=stock]").addEventListener("click", ()=>{
+        const q = prompt("Search for a free image:");
+        if (!q) return;
+        sec.imgData = fetchStockImage(q);
+        renderSections();
+      });
+    });
+  }
+
+  document.getElementById("lpb-add-section").addEventListener("click", ()=>addSection());
+  addSection();
+
+  document.getElementById("lpb-generate").addEventListener("click", ()=>{
+    let html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Landing Page</title></head><body>";
+    state.sections.forEach(sec=>{
+      html += `<section><h2 style="text-align:center">${sec.title}</h2>`;
+      if (sec.imgData) html += `<img src="${sec.imgData}" alt="">`;
+      html += `<p>${sec.text}</p></section>`;
+    });
+    html += "</body></html>";
+    document.getElementById("lpb-output").value = html;
+    document.getElementById("lpb-modal").classList.add("show");
+  });
+
+  document.getElementById("lpb-close").addEventListener("click", ()=>{
+    document.getElementById("lpb-modal").classList.remove("show");
+  });
+})();
+</script>
+</body>
+</html>
