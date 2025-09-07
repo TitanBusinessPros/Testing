@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Invoice Generator</title>
+    <title>Invoice Generator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         :root {
             --primary-color: #3498db;
@@ -629,7 +629,7 @@
                 </div>
                 
                 <div class="actions">
-                    <button id="download-btn" class="btn-download"><i class="fas fa-download"></i> Download PDF</button>
+                    <button id="download-btn" class="btn-download"><i class="fas fa-download"></i> Download PNG</button>
                     <button id="print-btn" class="btn-print"><i class="fas fa-print"></i> Print</button>
                     <button id="clear-btn" class="btn-clear"><i class="fas fa-trash"></i> Clear All</button>
                 </div>
@@ -786,26 +786,63 @@
                 window.print();
             });
             
-            // Download functionality
+            // Download as PNG functionality - FIXED to fit paper size
             document.getElementById('download-btn').addEventListener('click', function() {
                 const invoiceElement = document.getElementById('invoice-print');
                 
-                // Hide the logo placeholder border for PDF
-                const logoPlaceholder = invoiceElement.querySelector('.logo-placeholder');
-                const originalBorder = logoPlaceholder.style.border;
-                logoPlaceholder.style.border = 'none';
+                // Show loading state
+                const downloadBtn = document.getElementById('download-btn');
+                const originalText = downloadBtn.innerHTML;
+                downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PNG...';
+                downloadBtn.disabled = true;
                 
-                const opt = {
-                    margin: 10,
-                    filename: 'invoice.pdf',
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
+                // Store original styles
+                const originalWidth = invoiceElement.style.width;
+                const originalPadding = invoiceElement.style.padding;
                 
-                html2pdf().set(opt).from(invoiceElement).save().then(() => {
-                    // Restore the border after generating PDF
-                    logoPlaceholder.style.border = originalBorder;
+                // Set dimensions for A4 paper size (8.27 × 11.69 inches)
+                invoiceElement.style.width = '794px'; // 8.27" * 96 DPI
+                invoiceElement.style.padding = '40px';
+                
+                // Use html2canvas to capture the invoice as an image
+                html2canvas(invoiceElement, {
+                    scale: 2, // Higher quality
+                    useCORS: true,
+                    logging: false,
+                    width: 794,
+                    windowWidth: 794
+                }).then(function(canvas) {
+                    // Convert canvas to data URL
+                    const imgData = canvas.toDataURL('image/png');
+                    
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.download = 'invoice.png';
+                    link.href = imgData;
+                    
+                    // Trigger download
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Restore original styles
+                    invoiceElement.style.width = originalWidth;
+                    invoiceElement.style.padding = originalPadding;
+                    
+                    // Restore button state
+                    downloadBtn.innerHTML = originalText;
+                    downloadBtn.disabled = false;
+                }).catch(function(error) {
+                    console.error('Error generating PNG:', error);
+                    alert('Error generating PNG. Please try again.');
+                    
+                    // Restore original styles
+                    invoiceElement.style.width = originalWidth;
+                    invoiceElement.style.padding = originalPadding;
+                    
+                    // Restore button state
+                    downloadBtn.innerHTML = originalText;
+                    downloadBtn.disabled = false;
                 });
             });
             
