@@ -1,552 +1,903 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Landing Page Builder</title>
-  <style>
-    /* === Namespaced styles (lpb-*) to avoid conflicts ===================== */
-    .lpb { --gap: 12px; --radius: 14px; --shadow: 0 6px 30px rgba(0,0,0,.08); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
-    .lpb * { box-sizing: border-box; }
-    .lpb-card { max-width: 980px; margin: 24px auto; padding: 20px; background:#fff; border:1px solid #e9ecef; border-radius: var(--radius); box-shadow: var(--shadow); }
-    .lpb-h1 { font-size: 1.6rem; margin: 0 0 10px; }
-    .lpb-h2 { font-size: 1.2rem; margin: 10px 0; }
-    .lpb-h3 { font-size: 1rem; margin: 0; }
-    .lpb-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--gap); }
-    .lpb-field { grid-column: span 12; display: flex; flex-direction: column; gap: 6px; }
-    .lpb-field > label { font-weight: 600; }
-    .lpb-field input[type="text"], .lpb-field textarea, .lpb-field select, .lpb-field input[type="color"] {
-      padding: 10px 12px; border:1px solid #cfd4da; border-radius: 10px; font: inherit; background:#fff;
-    }
-    .lpb-field input[type="color"] { height: 42px; padding: 4px; }
-    .lpb-help { color:#6c757d; }
-    .lpb-row { display:flex; align-items:center; gap:12px; }
-    .lpb-between { justify-content: space-between; }
-    .lpb-check { display:flex; align-items:center; gap:8px; user-select:none; }
-    .lpb-thumb img { display:block; max-width: 260px; max-height: 140px; border-radius:10px; border:1px solid #e9ecef; }
-    .lpb-hr { border:0; height:1px; background:linear-gradient(90deg,#eee,#ddd,#eee); margin:16px 0; }
-    .lpb-actions { display:flex; justify-content:flex-end; gap:10px; margin-top: 16px; }
-    .lpb-btn { border:1px solid #cfd4da; background:#f8f9fa; padding:10px 14px; border-radius: 999px; cursor:pointer; font-weight:600; }
-    .lpb-btn:hover { background:#eff2f5; }
-    .lpb-btn-primary { border-color:#4c6ef5; background:#4c6ef5; color:#fff; }
-    .lpb-btn-primary:hover { filter: brightness(0.95); }
-    .lpb-btn-ghost { background:transparent; }
-    .lpb-sec { padding:12px; border:1px dashed #cfd4da; border-radius: 12px; margin-bottom: 12px; background:#fbfcfe; }
-    .lpb-sec .lpb-row { flex-wrap: wrap; }
-    .lpb-sec .lpb-col { flex:1 1 260px; min-width: 240px; }
-    .lpb-sec .lpb-thumb img { max-width:180px; max-height:120px; }
-    .lpb-sec-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-    .lpb-del { background:#ffe3e3; border-color:#ffa8a8; }
-    .lpb-del:hover { background:#ffc9c9; }
-    .lpb-move { background:#e7f5ff; border-color:#74c0fc; }
-    .lpb-move:hover { background:#d0ebff; }
-
-    /* Modal */
-    .lpb-modal { position: fixed; inset: 0; display:none; z-index: 9999; }
-    .lpb-modal.show { display:block; }
-    .lpb-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.35); }
-    .lpb-modal-card { position:relative; z-index:1; max-width: 980px; margin: 5vh auto; background:#fff; border-radius: 16px; box-shadow: var(--shadow); padding: 16px; border:1px solid #e9ecef; }
-    .lpb-modal-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
-    .lpb-output { width:100%; height: 60vh; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; border:1px solid #e1e4e8; border-radius: 10px; padding: 10px; background:#fafbfc; }
-    .lpb-hint { margin-top: 8px; color:#6c757d; font-size:.9rem; }
-    .lpb-copyright { text-align: center; margin-top: 20px; color: #6c757d; font-size: 0.9rem; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; }
-    .lpb-footer-btn { display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; background: #4c6ef5; color: white; text-decoration: none; border-radius: 999px; font-size: 0.85rem; font-weight: 500; transition: background 0.2s; }
-    .lpb-footer-btn:hover { background: #3b5bdb; }
-    .lpb-footer-btn.paste { background: #fa5252; }
-    .lpb-footer-btn.paste:hover { background: #e03131; }
-
-    @media (min-width: 700px) {
-      .lpb-field:nth-child(1), .lpb-field:nth-child(2), .lpb-field:nth-child(3) { grid-column: span 6; }
-      .lpb-field:nth-child(4) { grid-column: span 12; }
-    }
-
-    /* small styles used in generated preview area (kept minimal) */
-  </style>
-</head>
-<body>
-  <!-- === Landing Page Code Builder (drop-in) ================================ -->
-  <section id="lpb-root" class="lpb">
-    <div class="lpb-card">
-      <h1 class="lpb-h1">Landing Page Builder</h1>
-
-      <div class="lpb-grid">
-        <div class="lpb-field">
-          <label>Site Title (for browser tab & SEO)</label>
-          <input id="lpb-site-title" type="text" placeholder="My Awesome Product">
-        </div>
-
-        <div class="lpb-field">
-          <label>Base Font</label>
-          <select id="lpb-font">
-            <option value="system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif">Clean Sans (system)</option>
-            <option value="Georgia, Times, serif">Serif (Georgia)</option>
-            <option value="Arial, Helvetica, sans-serif">Arial/Helvetica</option>
-            <option value="Tahoma, Verdana, sans-serif">Tahoma/Verdana</option>
-            <option value="'Courier New', Courier, monospace">Monospace</option>
-            <option value="'Poppins', sans-serif">Poppins (Modern)</option>
-            <option value="'Montserrat', sans-serif">Montserrat (Clean)</option>
-            <option value="'Playfair Display', serif">Playfair (Elegant)</option>
-            <option value="'Roboto Condensed', sans-serif">Roboto Condensed</option>
-            <option value="'Open Sans', sans-serif">Open Sans (Friendly)</option>
-            <option value="'Lora', serif">Lora (Elegant)</option>
-            <option value="'Roboto Mono', monospace">Roboto Mono (Code)</option>
-            <option value="'Nunito', sans-serif">Nunito (Rounded)</option>
-            <option value="'Merriweather', serif">Merriweather (Readable)</option>
-            <option value="'Fira Sans', sans-serif">Fira Sans (Tech)</option>
-            <option value="'Source Sans Pro', sans-serif">Source Sans Pro (Clean)</option>
-            <option value="'Oswald', sans-serif">Oswald (Bold)</option>
-            <option value="'Raleway', sans-serif">Raleway (Elegant)</option>
-            <option value="'PT Sans', sans-serif">PT Sans (Neutral)</option>
-            <option value="'Noto Sans', sans-serif">Noto Sans (Universal)</option>
-          </select>
-        </div>
-
-        <div class="lpb-field">
-          <label>Base Font Size</label>
-          <select id="lpb-base-size">
-            <option value="14">14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18" selected>18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="22">22</option>
-            <option value="24">24</option>
-            <option value="26">26</option>
-            <option value="28">28</option>
-            <option value="30">30</option>
-          </select>
-        </div>
-
-        <div class="lpb-field lpb-row">
-          <label class="lpb-check">
-            <input id="lpb-bold-headings" type="checkbox" checked> Bold Headings
-          </label>
-          <label class="lpb-check">
-            <input id="lpb-bold-body" type="checkbox"> Bold Body Text
-          </label>
-        </div>
-      </div>
-
-      <hr class="lpb-hr">
-
-      <h2 class="lpb-h2">Color Scheme</h2>
-      <div class="lpb-grid">
-        <div class="lpb-field">
-          <label>Primary Color</label>
-          <input id="lpb-primary-color" type="color" value="#4c6ef5">
-        </div>
-        <div class="lpb-field">
-          <label>Text Color</label>
-          <input id="lpb-text-color" type="color" value="#1f2937">
-        </div>
-        <div class="lpb-field lpb-row">
-          <label class="lpb-check">
-            <input id="lpb-use-gradient" type="checkbox" checked> Use Gradient Background
-          </label>
-        </div>
-      </div>
-
-      <hr class="lpb-hr">
-
-      <h2 class="lpb-h2">Hero Section</h2>
-      <div class="lpb-grid">
-        <div class="lpb-field">
-          <label>Hero Heading</label>
-          <input id="lpb-hero-heading" type="text" placeholder="Build beautiful websites effortlessly">
-        </div>
-        <div class="lpb-field">
-          <label>Hero Subheading</label>
-          <textarea id="lpb-hero-sub" rows="2" placeholder="A simple template that becomes real HTML in one click."></textarea>
-        </div>
-        <div class="lpb-field">
-          <label>Call-To-Action Text</label>
-          <input id="lpb-hero-cta" type="text" placeholder="Get Started">
-        </div>
-        <div class="lpb-field">
-          <label>Hero Image (optional)</label>
-          <input id="lpb-hero-img" type="file" accept="image/*">
-          <small class="lpb-help">JPG is great; PNG/WebP/GIF also work. We'll embed it directly.</small>
-          <div id="lpb-hero-thumb" class="lpb-thumb"></div>
-        </div>
-        <div class="lpb-field">
-          <label>Hero Image Alt Text</label>
-          <input id="lpb-hero-alt" type="text" placeholder="Screenshot of the product">
-        </div>
-        <div class="lpb-field">
-          <label>Hero Image Position</label>
-          <select id="lpb-hero-img-pos">
-            <option value="right">Right of Text</option>
-            <option value="below">Below Text</option>
-            <option value="left">Left of Text</option>
-            <option value="background">As Background</option>
-          </select>
-        </div>
-      </div>
-
-      <hr class="lpb-hr">
-
-      <div class="lpb-row lpb-between">
-        <h2 class="lpb-h2">Content Sections</h2>
-        <button id="lpb-add-section" class="lpb-btn">+ Add Section</button>
-      </div>
-      <div id="lpb-sections"></div>
-
-      <div class="lpb-actions">
-        <button id="lpb-generate" class="lpb-btn lpb-btn-primary">Make It Code</button>
-      </div>
-
-      <div class="lpb-copyright">
-        <span>&copy; Copyright 2025 Titan Business Pros LLC</span>
-        <a href="#" class="lpb-footer-btn" target="_blank">Contact</a>
-        <a href="#" class="lpb-footer-btn paste" target="_blank">Paste Code</a>
-      </div>
-    </div>
-
-    <!-- Code Modal -->
-    <div id="lpb-modal" class="lpb-modal" aria-hidden="true">
-      <div class="lpb-modal-card" role="dialog" aria-modal="true" aria-labelledby="lpb-modal-title">
-        <div class="lpb-modal-head">
-          <h3 id="lpb-modal-title" class="lpb-h3">Your Landing Page HTML</h3>
-          <div class="lpb-modal-actions">
-            <button id="lpb-copy" class="lpb-btn">Copy</button>
-            <button id="lpb-minify" class="lpb-btn">Minify</button>
-            <button id="lpb-close" class="lpb-btn lpb-btn-ghost" aria-label="Close">×</button>
-          </div>
-        </div>
-        <textarea id="lpb-output" class="lpb-output" rows="16" readonly></textarea>
-        <div class="lpb-hint">Tip: Paste this into a new <code>.html</code> file or your existing project.</div>
-      </div>
-      <div class="lpb-backdrop"></div>
-    </div>
-  </section>
-
-  <script>
-  (function(){
-    const root = document.getElementById('lpb-root');
-    const $ = (sel, par=root) => par.querySelector(sel);
-    const $$ = (sel, par=root) => Array.from(par.querySelectorAll(sel));
-
-    // State
-    const state = {
-      heroImgData: null,
-      heroImgPos: 'right',
-      sections: [] // each: {id, title, text, imgData, alt, imgPos}
-    };
-
-    // Helpers
-    const escapeHTML = (str='') => String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-    const readFileAsDataURL = file => new Promise((res, rej) => {
-      const fr = new FileReader();
-      fr.onload = () => res(fr.result);
-      fr.onerror = rej;
-      fr.readAsDataURL(file);
-    });
-
-    // Hero image upload + preview
-    $('#lpb-hero-img').addEventListener('change', async (e) => {
-      const f = e.target.files && e.target.files[0];
-      if (!f) return;
-      if (!/^image\//.test(f.type)) { alert('Please choose an image file.'); e.target.value = ''; return; }
-      try {
-        const dataURL = await readFileAsDataURL(f);
-        state.heroImgData = dataURL;
-        $('#lpb-hero-thumb').innerHTML = `<img alt="${escapeHTML($('#lpb-hero-alt').value||'')}" src="${dataURL}">`;
-      } catch (err) {
-        console.error(err);
-        alert('Error reading image file.');
-      }
-    });
-
-    // Hero image position select
-    $('#lpb-hero-img-pos').addEventListener('change', (e) => {
-      state.heroImgPos = e.target.value;
-    });
-
-    // Sections UI
-    const sectionsEl = $('#lpb-sections');
-
-    function makeId() {
-      try { return crypto.randomUUID(); } catch { return String(Date.now()) + Math.floor(Math.random()*1000); }
-    }
-
-    function addSection(prefill){
-      const id = makeId();
-      const sec = Object.assign({ id, title:'', text:'', imgData:null, alt:'', imgPos:'right' }, prefill||{});
-      state.sections.push(sec);
-      renderSections();
-    }
-
-    function removeSection(id){
-      const i = state.sections.findIndex(s => s.id === id);
-      if (i >= 0) { state.sections.splice(i,1); renderSections(); }
-    }
-
-    function moveSection(id, dir){
-      const i = state.sections.findIndex(s => s.id === id);
-      if (i < 0) return;
-      const j = i + (dir === 'up' ? -1 : 1);
-      if (j < 0 || j >= state.sections.length) return;
-      [state.sections[i], state.sections[j]] = [state.sections[j], state.sections[i]];
-      renderSections();
-    }
-
-    function renderSections(){
-      sectionsEl.innerHTML = '';
-      state.sections.forEach((sec, idx) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'lpb-sec';
-        wrapper.innerHTML = `
-          <div class="lpb-sec-head">
-            <strong>Section ${idx+1}</strong>
-            <div class="lpb-row">
-              <button class="lpb-btn lpb-move" data-act="up">↑</button>
-              <button class="lpb-btn lpb-move" data-act="down">↓</button>
-              <button class="lpb-btn lpb-del" data-act="del">Delete</button>
-            </div>
-          </div>
-          <div class="lpb-row">
-            <div class="lpb-col">
-              <label>Section Title</label>
-              <input type="text" data-key="title" value="${escapeHTML(sec.title)}" placeholder="Features">
-            </div>
-            <div class="lpb-col">
-              <label>Image (optional)</label>
-              <input type="file" accept="image/*" data-key="img">
-              <div class="lpb-thumb">${sec.imgData ? `<img alt="${escapeHTML(sec.alt||'')}" src="${sec.imgData}">` : ''}</div>
-            </div>
-          </div>
-          <div class="lpb-field" style="margin-top:8px">
-            <label>Image Alt Text</label>
-            <input type="text" data-key="alt" value="${escapeHTML(sec.alt)}" placeholder="Illustration of feature list">
-          </div>
-          <div class="lpb-field" style="margin-top:8px">
-            <label>Image Position</label>
-            <select data-key="imgPos">
-              <option value="right" ${sec.imgPos==='right'?'selected':''}>Right of Text</option>
-              <option value="left" ${sec.imgPos==='left'?'selected':''}>Left of Text</option>
-              <option value="above" ${sec.imgPos==='above'?'selected':''}>Above Text</option>
-              <option value="below" ${sec.imgPos==='below'?'selected':''}>Below Text</option>
-            </select>
-          </div>
-          <div class="lpb-field" style="margin-top:8px">
-            <label>Section Text</label>
-            <textarea rows="3" data-key="text" placeholder="Describe your product...">${escapeHTML(sec.text)}</textarea>
-          </div>
-        `;
-        sectionsEl.appendChild(wrapper);
-
-        // wire fields
-        const titleEl = wrapper.querySelector('input[data-key="title"]');
-        const textEl  = wrapper.querySelector('textarea[data-key="text"]');
-        const altEl   = wrapper.querySelector('input[data-key="alt"]');
-        const imgEl   = wrapper.querySelector('input[data-key="img"]');
-        const imgPosEl = wrapper.querySelector('select[data-key="imgPos"]');
-
-        titleEl.addEventListener('input', e => sec.title = e.target.value);
-        textEl.addEventListener('input', e => sec.text = e.target.value);
-        altEl.addEventListener('input', e => {
-          sec.alt = e.target.value;
-          // if preview exists, update alt on preview
-          const previewImg = wrapper.querySelector('.lpb-thumb img');
-          if (previewImg) previewImg.alt = sec.alt || '';
-        });
-        imgPosEl.addEventListener('change', e => sec.imgPos = e.target.value);
-
-        // IMPORTANT: update thumb in-place (do NOT re-render here)
-        imgEl.addEventListener('change', async (e) => {
-          const f = e.target.files && e.target.files[0];
-          if (!f) return;
-          if (!/^image\//.test(f.type)) { alert('Please choose an image file.'); e.target.value = ''; return; }
-          try {
-            sec.imgData = await readFileAsDataURL(f);
-            const thumb = wrapper.querySelector('.lpb-thumb');
-            thumb.innerHTML = `<img alt="${escapeHTML(sec.alt||'')}" src="${sec.imgData}">`;
-          } catch (err) {
-            console.error(err);
-            alert('Error reading image file.');
-          }
-        });
-
-        wrapper.querySelector('[data-act="del"]').addEventListener('click', () => removeSection(sec.id));
-        wrapper.querySelector('[data-act="up"]').addEventListener('click', () => moveSection(sec.id, 'up'));
-        wrapper.querySelector('[data-act="down"]').addEventListener('click', () => moveSection(sec.id, 'down'));
-      });
-    }
-
-    // start with one empty section
-    addSection();
-
-    // Add Section button
-    $('#lpb-add-section').addEventListener('click', () => addSection());
-
-    // Code generation
-    $('#lpb-generate').addEventListener('click', () => {
-      const siteTitle = $('#lpb-site-title').value.trim() || 'Landing Page';
-      const font = $('#lpb-font').value;
-      const baseSize = parseInt($('#lpb-base-size').value, 10) || 18;
-      const boldHeadings = $('#lpb-bold-headings').checked;
-      const boldBody = $('#lpb-bold-body').checked;
-      const primaryColor = $('#lpb-primary-color').value;
-      const textColor = $('#lpb-text-color').value;
-      const useGradient = $('#lpb-use-gradient').checked;
-
-      const heroH = $('#lpb-hero-heading').value.trim();
-      const heroS = $('#lpb-hero-sub').value.trim();
-      const heroCTA = $('#lpb-hero-cta').value.trim();
-      const heroAlt = $('#lpb-hero-alt').value.trim();
-      const heroImg = state.heroImgData;
-      const heroImgPos = state.heroImgPos;
-
-      // Build sections HTML using state (images are data URLs already)
-      const sectionsHTML = state.sections.map(s => {
-        let layoutClass = '';
-        let gridTemplate = '1fr';
-        if (s.imgData) {
-          switch (s.imgPos) {
-            case 'right': layoutClass = 'sec-img-right'; gridTemplate = '2fr 1.2fr'; break;
-            case 'left' : layoutClass = 'sec-img-left';  gridTemplate = '1.2fr 2fr'; break;
-            case 'above': layoutClass = 'sec-img-above'; gridTemplate = '1fr'; break;
-            case 'below': layoutClass = 'sec-img-below'; gridTemplate = '1fr'; break;
-          }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Invoice Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #27ae60;
         }
-        return `
-<section class="sec ${layoutClass}">
-  ${s.title ? `<h2>${escapeHTML(s.title)}</h2>` : ''}
-  <div class="sec-wrap"${s.imgData ? ` style="grid-template-columns:${gridTemplate}"` : ''}>
-    ${s.imgData && (s.imgPos === 'left' || s.imgPos === 'above') ? `<figure><img src="${s.imgData}" alt="${escapeHTML(s.alt||'')}"></figure>` : ''}
-    ${s.text ? `<div class="sec-content"><p>${escapeHTML(s.text).replace(/\n/g,'<br>')}</p></div>` : ''}
-    ${s.imgData && (s.imgPos === 'right' || s.imgPos === 'below') ? `<figure><img src="${s.imgData}" alt="${escapeHTML(s.alt||'')}"></figure>` : ''}
-  </div>
-</section>`;
-      }).join('\n');
-
-      // decide header inline style: if hero image as background, include it (data URL inside url(""))
-      const safeHeroImg = heroImg ? heroImg.replace(/"/g, '%22') : '';
-      let headerInline = '';
-      if (heroImg && heroImgPos === 'background') {
-        headerInline = `style="background-image: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9))${safeHeroImg ? `, url('${safeHeroImg}')` : ''}; background-size: cover; background-position: center;"`;
-      } else {
-        headerInline = `style="background:${ useGradient ? `linear-gradient(180deg,${adjustColor(primaryColor,95)},#ffffff)` : adjustColor(primaryColor,95) }"`;
-      }
-
-      // Build final HTML (embedded images are data URLs)
-      const html = `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${escapeHTML(siteTitle)}</title>
-<meta name="description" content="${escapeHTML(heroS || siteTitle)}">
-<style>
-:root{--base:${baseSize}px;--primary:${primaryColor};--text:${textColor}}
-html{font-size:var(--base)}
-body{margin:0;font-family:${font};line-height:1.6;color:var(--text);background:#ffffff}
-.container{max-width:1100px;margin:0 auto;padding:24px}
-header.hero{padding:64px 0 40px}
-.hero h1{font-size:clamp(1.8rem,3vw + 1rem,3rem);margin:0 0 8px;${boldHeadings ? 'font-weight:800' : 'font-weight:600'}}
-.hero p{font-size:1.05rem;margin:0 0 18px;${boldBody ? 'font-weight:600' : ''}; color:${adjustColor(textColor,30)}}
-.hero .cta{display:inline-block;padding:12px 18px;background:var(--primary);color:#fff;border-radius:999px;text-decoration:none;border:1px solid ${adjustColor(primaryColor,-20)}}
-.hero img{max-width:100%;height:auto;border-radius:14px;border:1px solid ${adjustColor(textColor,90)};box-shadow:0 8px 30px rgba(0,0,0,.06)}
-.hero-grid{display:grid;gap:18px;align-items:center}
-.hero-content{order:1}
-.hero-media{order:2}
-.sec{padding:32px 0;border-top:1px solid ${adjustColor(textColor,95)}}
-.sec h2{font-size:1.5rem;margin:0 0 10px;${boldHeadings ? 'font-weight:800' : 'font-weight:700'}}
-.sec-wrap{display:grid;gap:18px;align-items:start}
-.sec p{margin:0;${boldBody ? 'font-weight:600' : ''}}
-.sec-img-above .sec-wrap,.sec-img-below .sec-wrap{grid-template-columns:1fr}
-figure{margin:0}
-figure img{max-width:100%;height:auto;border-radius:12px;border:1px solid ${adjustColor(textColor,90)}}
-footer{padding:40px 0;border-top:1px solid ${adjustColor(textColor,95)};color:${adjustColor(textColor,40)};font-size:.95rem;text-align:center}
-@media (min-width:860px){
-  .hero-grid{grid-template-columns:${heroImg && heroImgPos !== 'background' && (heroImgPos==='left' || heroImgPos==='right') ? '1fr 1fr' : '1fr'}}
-  ${heroImgPos === 'left' ? '.hero-content{order:2}.hero-media{order:1}' : ''}
-  ${heroImgPos === 'background' ? '.hero{background-size:cover;background-position:center}' : ''}
-  .sec-wrap{grid-template-columns: ${ /* prefer col widths when image present on left/right */ (state.sections.some(s=>s.imgData && (s.imgPos==='left' || s.imgPos==='right')) ? '1fr' : '1fr') }}
-}
-</style>
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .app-description {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+        
+        .app-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .input-section {
+            flex: 1;
+            min-width: 320px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .preview-section {
+            flex: 1;
+            min-width: 320px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .section-title {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--primary-color);
+            color: var(--secondary-color);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        button {
+            padding: 12px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .item-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        .item-row input {
+            flex: 1;
+        }
+        
+        .item-row button {
+            flex: 0 0 45px;
+            height: 45px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--accent-color);
+        }
+        
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-download {
+            background-color: var(--success-color);
+        }
+        
+        .btn-download:hover {
+            background-color: #219653;
+        }
+        
+        .btn-print {
+            background-color: #7d3c98;
+        }
+        
+        .btn-print:hover {
+            background-color: #6c3483;
+        }
+        
+        .btn-clear {
+            background-color: #e74c3c;
+        }
+        
+        .template-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .template-option {
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+            padding: 15px 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .template-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+        
+        .template-option.active {
+            border-color: var(--primary-color);
+            background-color: #e1f0fa;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .invoice-preview {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 25px;
+            background: white;
+            overflow-y: auto;
+            min-height: 500px;
+        }
+        
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .logo-container {
+            width: 180px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .logo-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed var(--primary-color);
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .logo-placeholder i {
+            display: block;
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .company-info {
+            text-align: right;
+        }
+        
+        .invoice-title {
+            text-align: center;
+            font-size: 2.2rem;
+            margin: 25px 0;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .invoice-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .client-details {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .invoice-meta {
+            flex: 1;
+            text-align: right;
+            min-width: 250px;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .items-table th, .items-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .items-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .items-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .items-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .invoice-summary {
+            text-align: right;
+            margin-top: 25px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 12px;
+        }
+        
+        .summary-label {
+            width: 150px;
+            text-align: right;
+            padding-right: 25px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .summary-value {
+            width: 150px;
+            text-align: right;
+        }
+        
+        .total {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--dark-color);
+            border-top: 3px solid var(--primary-color);
+            padding-top: 15px;
+            margin-top: 10px;
+        }
+        
+        .notes {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-left: 4px solid var(--primary-color);
+            border-radius: 4px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 25px;
+            color: var(--dark-color);
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #invoice-print, #invoice-print * {
+                visibility: visible;
+            }
+            #invoice-print {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+                background: white;
+            }
+            .logo-placeholder {
+                border: none;
+            }
+            .actions, .input-section, .footer, .template-selector {
+                display: none !important;
+            }
+        }
+        
+        /* Template-specific styles */
+        .template-simple .invoice-title {
+            color: var(--secondary-color);
+        }
+        
+        .template-modern {
+            background-color: #f8f9fa;
+        }
+        
+        .template-modern .invoice-title {
+            color: var(--accent-color);
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 15px;
+        }
+        
+        .template-modern .items-table th {
+            background-color: var(--accent-color);
+        }
+        
+        .template-corporate {
+            font-family: 'Georgia', serif;
+        }
+        
+        .template-corporate .invoice-title {
+            color: #2c6b9e;
+            font-style: italic;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        
+        .template-corporate .items-table th {
+            background-color: #2c6b9e;
+        }
+        
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .invoice-details {
+                flex-direction: column;
+            }
+            
+            .invoice-meta {
+                text-align: left;
+                margin-top: 20px;
+            }
+            
+            .invoice-header {
+                flex-direction: column;
+            }
+            
+            .company-info {
+                text-align: left;
+                margin-top: 20px;
+            }
+            
+            .item-row {
+                flex-direction: column;
+            }
+            
+            .item-row input {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-<header class="hero" ${headerInline}>
-  <div class="container">
-    ${heroImg && heroImgPos !== 'background' ? `<div class="hero-grid">` : ''}
-    ${heroImg && heroImgPos === 'left' ? `<div class="hero-media"><img src="${heroImg}" alt="${escapeHTML(heroAlt || 'Hero image')}"></div>` : ''}
-    <div class="hero-content">
-      ${heroH ? `<h1>${escapeHTML(heroH)}</h1>` : ''}
-      ${heroS ? `<p>${escapeHTML(heroS)}</p>` : ''}
-      ${heroCTA ? `<a class="cta" href="#">${escapeHTML(heroCTA)}</a>` : ''}
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-file-invoice-dollar"></i> Invoice Generator</h1>
+            <p class="app-description">Create professional invoices in minutes. Input client and item details, choose a template, and download or print your invoice.</p>
+        </header>
+        
+        <div class="app-container">
+            <div class="input-section">
+                <h2 class="section-title"><i class="fas fa-sliders-h"></i> Invoice Details</h2>
+                
+                <div class="template-selector">
+                    <div class="template-option active" data-template="template-simple">
+                        <i class="fas fa-file-alt fa-2x"></i>
+                        <p>Simple</p>
+                    </div>
+                    <div class="template-option" data-template="template-modern">
+                        <i class="fas fa-receipt fa-2x"></i>
+                        <p>Modern</p>
+                    </div>
+                    <div class="template-option" data-template="template-corporate">
+                        <i class="fas fa-building fa-2x"></i>
+                        <p>Corporate</p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="company-name"><i class="fas fa-building"></i> Your Company Name</label>
+                    <input type="text" id="company-name" placeholder="Enter company name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="company-address"><i class="fas fa-map-marker-alt"></i> Company Address</label>
+                    <textarea id="company-address" placeholder="Enter company address" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="company-contact"><i class="fas fa-phone"></i> Contact Information</label>
+                    <input type="text" id="company-contact" placeholder="Phone, email, etc.">
+                </div>
+                
+                <div class="form-group">
+                    <label for="logo-upload"><i class="fas fa-image"></i> Company Logo</label>
+                    <input type="file" id="logo-upload" accept="image/*" style="display: none;">
+                    <div id="logo-placeholder" class="logo-placeholder">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Click to Upload Logo</span>
+                    </div>
+                </div>
+                
+                <h2 class="section-title"><i class="fas fa-users"></i> Client Information</h2>
+                
+                <div class="form-group">
+                    <label for="client-name"><i class="fas fa-user"></i> Client Name</label>
+                    <input type="text" id="client-name" placeholder="Enter client name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="client-address"><i class="fas fa-map-marked-alt"></i> Client Address</label>
+                    <textarea id="client-address" placeholder="Enter client address" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="invoice-number"><i class="fas fa-hashtag"></i> Invoice Number</label>
+                    <input type="text" id="invoice-number" placeholder="e.g., INV-001">
+                </div>
+                
+                <div class="form-group">
+                    <label for="invoice-date"><i class="fas fa-calendar-alt"></i> Invoice Date</label>
+                    <input type="date" id="invoice-date">
+                </div>
+                
+                <h2 class="section-title"><i class="fas fa-box-open"></i> Items</h2>
+                
+                <div id="items-container">
+                    <div class="item-row">
+                        <input type="text" placeholder="Description" class="item-desc">
+                        <input type="number" placeholder="Quantity" class="item-qty" min="1" value="1">
+                        <input type="number" placeholder="Price" class="item-price" min="0" step="0.01">
+                        <button class="remove-item"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                
+                <button id="add-item"><i class="fas fa-plus"></i> Add Item</button>
+                
+                <div class="form-group">
+                    <label for="tax-rate"><i class="fas fa-percentage"></i> Tax Rate (%)</label>
+                    <input type="number" id="tax-rate" placeholder="e.g., 10" min="0" step="0.1" value="0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes"><i class="fas fa-sticky-note"></i> Notes</label>
+                    <textarea id="notes" placeholder="Additional notes for the client" rows="3"></textarea>
+                </div>
+            </div>
+            
+            <div class="preview-section">
+                <h2 class="section-title"><i class="fas fa-eye"></i> Invoice Preview</h2>
+                
+                <div class="invoice-preview template-simple" id="invoice-preview">
+                    <div id="invoice-print">
+                        <div class="invoice-header">
+                            <div class="logo-container">
+                                <div id="logo-preview" class="logo-placeholder">
+                                    <i class="fas fa-image"></i>
+                                    <span>Logo will appear here</span>
+                                </div>
+                            </div>
+                            <div class="company-info">
+                                <h3 id="preview-company-name">Your Company Name</h3>
+                                <p id="preview-company-address">Company Address</p>
+                                <p id="preview-company-contact">Contact Information</p>
+                            </div>
+                        </div>
+                        
+                        <h1 class="invoice-title">INVOICE</h1>
+                        
+                        <div class="invoice-details">
+                            <div class="client-details">
+                                <h3>Bill To:</h3>
+                                <p id="preview-client-name">Client Name</p>
+                                <p id="preview-client-address">Client Address</p>
+                            </div>
+                            
+                            <div class="invoice-meta">
+                                <p><strong>Invoice Number:</strong> <span id="preview-invoice-number">INV-001</span></p>
+                                <p><strong>Invoice Date:</strong> <span id="preview-invoice-date">01/01/2023</span></p>
+                            </div>
+                        </div>
+                        
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="preview-items">
+                                <tr>
+                                    <td>Sample Item</td>
+                                    <td>2</td>
+                                    <td>$25.00</td>
+                                    <td>$50.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <div class="invoice-summary">
+                            <div class="summary-row">
+                                <div class="summary-label">Subtotal:</div>
+                                <div class="summary-value" id="preview-subtotal">$50.00</div>
+                            </div>
+                            <div class="summary-row">
+                                <div class="summary-label">Tax (<span id="preview-tax-rate">0</span>%):</div>
+                                <div class="summary-value" id="preview-tax">$0.00</div>
+                            </div>
+                            <div class="summary-row total">
+                                <div class="summary-label">Total:</div>
+                                <div class="summary-value" id="preview-total">$50.00</div>
+                            </div>
+                        </div>
+                        
+                        <div id="preview-notes" class="notes">
+                            <p>Thank you for your business!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="actions">
+                    <button id="download-btn" class="btn-download"><i class="fas fa-download"></i> Download PDF</button>
+                    <button id="print-btn" class="btn-print"><i class="fas fa-print"></i> Print</button>
+                    <button id="clear-btn" class="btn-clear"><i class="fas fa-trash"></i> Clear All</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Invoice Generator Tool &copy; 2023 | Create professional invoices easily</p>
+        </div>
     </div>
-    ${heroImg && heroImgPos === 'right' ? `<div class="hero-media"><img src="${heroImg}" alt="${escapeHTML(heroAlt || 'Hero image')}"></div>` : ''}
-    ${heroImg && heroImgPos !== 'background' ? `</div>` : ''}
-    ${heroImg && heroImgPos === 'below' ? `<div class="media"><img src="${heroImg}" alt="${escapeHTML(heroAlt || 'Hero image')}"></div>` : ''}
-  </div>
-</header>
 
-<main class="container">
-${sectionsHTML || '<!-- Add sections to show content here -->'}
-</main>
-
-<footer class="container">&copy; ${new Date().getFullYear()} ${escapeHTML(siteTitle)}. All rights reserved.</footer>
-</body>
-</html>`;
-
-      // Put generated HTML into modal output
-      $('#lpb-output').value = html;
-      $('#lpb-modal').classList.add('show');
-      $('#lpb-modal').setAttribute('aria-hidden','false');
-    });
-
-    // Modal controls
-    $('#lpb-close').addEventListener('click', () => {
-      $('#lpb-modal').classList.remove('show');
-      $('#lpb-modal').setAttribute('aria-hidden','true');
-    });
-    document.querySelector('.lpb-backdrop').addEventListener('click', () => $('#lpb-close').click());
-
-    // Copy to clipboard
-    $('#lpb-copy').addEventListener('click', async () => {
-      const ta = $('#lpb-output');
-      ta.select();
-      ta.setSelectionRange(0, ta.value.length);
-      try {
-        await navigator.clipboard.writeText(ta.value);
-        const old = $('#lpb-copy').textContent;
-        $('#lpb-copy').textContent = 'Copied!';
-        setTimeout(() => $('#lpb-copy').textContent = old, 900);
-      } catch {
-        try { document.execCommand('copy'); } catch {}
-      }
-    });
-
-    // Minify code
-    $('#lpb-minify').addEventListener('click', () => {
-      const ta = $('#lpb-output');
-      let code = ta.value;
-      code = code
-        .replace(/<!--[\s\S]*?-->/g, '') // remove comments
-        .replace(/\s*[\r\n]+\s*/g, '')   // remove line breaks
-        .replace(/>\s+</g, '><')         // collapse inter-tag whitespace
-        .replace(/\s{2,}/g, ' ')
-        .trim();
-      ta.value = code;
-      const old = $('#lpb-minify').textContent;
-      $('#lpb-minify').textContent = 'Minified!';
-      setTimeout(() => $('#lpb-minify').textContent = old, 1500);
-    });
-
-    // color adjust helper
-    function adjustColor(hex, amt) {
-      try {
-        const num = parseInt(hex.slice(1), 16);
-        const r = Math.max(0, Math.min(255, (num >> 16) + amt));
-        const g = Math.max(0, Math.min(255, ((num >> 8) & 0xFF) + amt));
-        const b = Math.max(0, Math.min(255, (num & 0xFF) + amt));
-        return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-      } catch { return hex; }
-    }
-  })();
-  </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('invoice-date').value = today;
+            updateInvoiceDatePreview(today);
+            
+            // Set active template
+            let activeTemplate = 'template-simple';
+            
+            // Logo upload functionality
+            const logoUpload = document.getElementById('logo-upload');
+            const logoPlaceholder = document.getElementById('logo-placeholder');
+            const logoPreview = document.getElementById('logo-preview');
+            
+            logoPlaceholder.addEventListener('click', function() {
+                logoUpload.click();
+            });
+            
+            logoUpload.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        logoPreview.innerHTML = '';
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.maxWidth = '100%';
+                        img.style.maxHeight = '100%';
+                        img.style.borderRadius = '6px';
+                        logoPreview.appendChild(img);
+                    }
+                    
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+            
+            // Template selection
+            const templateOptions = document.querySelectorAll('.template-option');
+            const invoicePreview = document.getElementById('invoice-preview');
+            
+            templateOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    templateOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Remove all template classes
+                    invoicePreview.classList.remove('template-simple', 'template-modern', 'template-corporate');
+                    
+                    // Add the selected template class
+                    activeTemplate = this.getAttribute('data-template');
+                    invoicePreview.classList.add(activeTemplate);
+                });
+            });
+            
+            // Add item row
+            const addItemBtn = document.getElementById('add-item');
+            const itemsContainer = document.getElementById('items-container');
+            
+            addItemBtn.addEventListener('click', function() {
+                const newItemRow = document.createElement('div');
+                newItemRow.className = 'item-row';
+                newItemRow.innerHTML = `
+                    <input type="text" placeholder="Description" class="item-desc">
+                    <input type="number" placeholder="Quantity" class="item-qty" min="1" value="1">
+                    <input type="number" placeholder="Price" class="item-price" min="0" step="0.01">
+                    <button class="remove-item"><i class="fas fa-times"></i></button>
+                `;
+                
+                itemsContainer.appendChild(newItemRow);
+                
+                // Add event listener to remove button
+                newItemRow.querySelector('.remove-item').addEventListener('click', function() {
+                    newItemRow.remove();
+                    updateInvoicePreview();
+                });
+                
+                // Add event listeners to inputs for live update
+                const inputs = newItemRow.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', updateInvoicePreview);
+                });
+            });
+            
+            // Remove item row
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-item') || e.target.closest('.remove-item')) {
+                    const button = e.target.classList.contains('remove-item') ? e.target : e.target.closest('.remove-item');
+                    button.parentElement.remove();
+                    updateInvoicePreview();
+                }
+            });
+            
+            // Clear all button
+            document.getElementById('clear-btn').addEventListener('click', function() {
+                if (confirm('Are you sure you want to clear all invoice data?')) {
+                    // Clear form inputs
+                    document.getElementById('company-name').value = '';
+                    document.getElementById('company-address').value = '';
+                    document.getElementById('company-contact').value = '';
+                    document.getElementById('client-name').value = '';
+                    document.getElementById('client-address').value = '';
+                    document.getElementById('invoice-number').value = '';
+                    document.getElementById('invoice-date').value = today;
+                    document.getElementById('tax-rate').value = '0';
+                    document.getElementById('notes').value = '';
+                    
+                    // Clear items
+                    document.getElementById('items-container').innerHTML = `
+                        <div class="item-row">
+                            <input type="text" placeholder="Description" class="item-desc">
+                            <input type="number" placeholder="Quantity" class="item-qty" min="1" value="1">
+                            <input type="number" placeholder="Price" class="item-price" min="0" step="0.01">
+                            <button class="remove-item"><i class="fas fa-times"></i></button>
+                        </div>
+                    `;
+                    
+                    // Clear logo
+                    logoPreview.innerHTML = '<i class="fas fa-image"></i><span>Logo will appear here</span>';
+                    
+                    // Reset template to simple
+                    templateOptions.forEach(opt => opt.classList.remove('active'));
+                    document.querySelector('[data-template="template-simple"]').classList.add('active');
+                    invoicePreview.classList.remove('template-modern', 'template-corporate');
+                    invoicePreview.classList.add('template-simple');
+                    
+                    // Update preview
+                    updateInvoicePreview();
+                    updateInvoiceDatePreview(today);
+                    
+                    alert('All data has been cleared!');
+                }
+            });
+            
+            // Update preview when inputs change
+            const inputElements = document.querySelectorAll('.input-section input, .input-section textarea');
+            inputElements.forEach(input => {
+                input.addEventListener('input', updateInvoicePreview);
+            });
+            
+            // Print functionality
+            document.getElementById('print-btn').addEventListener('click', function() {
+                window.print();
+            });
+            
+            // Download functionality
+            document.getElementById('download-btn').addEventListener('click', function() {
+                const invoiceElement = document.getElementById('invoice-print');
+                
+                // Hide the logo placeholder border for PDF
+                const logoPlaceholder = invoiceElement.querySelector('.logo-placeholder');
+                const originalBorder = logoPlaceholder.style.border;
+                logoPlaceholder.style.border = 'none';
+                
+                const opt = {
+                    margin: 10,
+                    filename: 'invoice.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                
+                html2pdf().set(opt).from(invoiceElement).save().then(() => {
+                    // Restore the border after generating PDF
+                    logoPlaceholder.style.border = originalBorder;
+                });
+            });
+            
+            // Initialize the preview
+            updateInvoicePreview();
+            
+            function updateInvoicePreview() {
+                // Update company info
+                document.getElementById('preview-company-name').textContent = document.getElementById('company-name').value || 'Your Company Name';
+                document.getElementById('preview-company-address').textContent = document.getElementById('company-address').value || 'Company Address';
+                document.getElementById('preview-company-contact').textContent = document.getElementById('company-contact').value || 'Contact Information';
+                
+                // Update client info
+                document.getElementById('preview-client-name').textContent = document.getElementById('client-name').value || 'Client Name';
+                document.getElementById('preview-client-address').textContent = document.getElementById('client-address').value || 'Client Address';
+                
+                // Update invoice details
+                document.getElementById('preview-invoice-number').textContent = document.getElementById('invoice-number').value || 'INV-001';
+                
+                // Update items
+                const itemRows = document.querySelectorAll('.item-row');
+                const previewItems = document.getElementById('preview-items');
+                previewItems.innerHTML = '';
+                
+                let subtotal = 0;
+                
+                itemRows.forEach(row => {
+                    const desc = row.querySelector('.item-desc').value || 'Item Description';
+                    const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                    const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                    const total = qty * price;
+                    
+                    if (desc && qty && price) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${desc}</td>
+                            <td>${qty}</td>
+                            <td>$${price.toFixed(2)}</td>
+                            <td>$${total.toFixed(2)}</td>
+                        `;
+                        
+                        previewItems.appendChild(tr);
+                        subtotal += total;
+                    }
+                });
+                
+                // If no items, show a placeholder
+                if (previewItems.children.length === 0) {
+                    previewItems.innerHTML = `
+                        <tr>
+                            <td colspan="4" style="text-align: center;">No items added</td>
+                        </tr>
+                    `;
+                }
+                
+                // Calculate totals
+                const taxRate = parseFloat(document.getElementById('tax-rate').value) || 0;
+                const tax = subtotal * (taxRate / 100);
+                const total = subtotal + tax;
+                
+                document.getElementById('preview-subtotal').textContent = '$' + subtotal.toFixed(2);
+                document.getElementById('preview-tax-rate').textContent = taxRate;
+                document.getElementById('preview-tax').textContent = '$' + tax.toFixed(2);
+                document.getElementById('preview-total').textContent = '$' + total.toFixed(2);
+                
+                // Update notes
+                const notes = document.getElementById('notes').value;
+                const notesPreview = document.getElementById('preview-notes');
+                
+                if (notes) {
+                    notesPreview.innerHTML = '<p>' + notes.replace(/\n/g, '<br>') + '</p>';
+                } else {
+                    notesPreview.innerHTML = '<p>Thank you for your business!</p>';
+                }
+            }
+            
+            function updateInvoiceDatePreview(dateString) {
+                const date = new Date(dateString);
+                const formattedDate = date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                document.getElementById('preview-invoice-date').textContent = formattedDate;
+            }
+            
+            // Update date preview when date changes
+            document.getElementById('invoice-date').addEventListener('change', function() {
+                updateInvoiceDatePreview(this.value);
+            });
+        });
+    </script>
 </body>
 </html>
