@@ -69,6 +69,13 @@
       .editor{order:1}
       .iframe{min-height:420px}
     }
+
+    /* Share modal */
+    .share-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:9999}
+    .share-panel{background:#0c1124;color:var(--ink);padding:18px;border-radius:12px;min-width:320px;max-width:720px;border:1px solid #1b2544}
+    .share-row{display:flex;gap:8px;margin-top:12px}
+    .share-panel input{flex:1;padding:10px;border-radius:8px;border:1px solid #253251;background:#061022;color:var(--ink)}
+    .share-panel button{padding:10px 12px;border-radius:8px;border:0;background:linear-gradient(135deg,var(--brandB),var(--brandA));color:white}
   </style>
 </head>
 <body>
@@ -130,7 +137,8 @@ Pro tip: You can swap colorways without breaking your layout.</textarea></div>
             <div class="field"><label class="label">Unsubscribe URL (used in exported email)</label><input id="unsubscribeUrl" class="input" placeholder="https://example.com/unsubscribe"/></div>
             <div class="row">
               <button id="refresh" class="btn" type="button">Refresh Preview</button>
-              <button id="export" class="btn" type="button" title="Export a standalone HTML email">Export HTML</button>
+              <button id="download" class="btn" type="button" title="Download HTML">Download</button>
+              <button id="share" class="btn" type="button" title="Share Link" style="background:linear-gradient(135deg,#06b6d4,#7c3aed);">Share Link</button>
             </div>
           </div>
         </section>
@@ -144,6 +152,20 @@ Pro tip: You can swap colorways without breaking your layout.</textarea></div>
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- Share modal -->
+  <div id="shareModal" class="share-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="share-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between"><strong>Shareable Link (temporary)</strong><button id="shareCloseBtn" style="background:none;border:0;color:var(--muted);cursor:pointer">✕</button></div>
+      <p style="margin:8px 0 0;color:var(--muted);font-size:13px">This link points to a temporary blob URL of the generated HTML. It works for sharing quickly but will expire when the browser session ends or the link is revoked.</p>
+      <div class="share-row">
+        <input id="shareLinkInput" readonly />
+        <button id="shareCopyBtn">Copy</button>
+        <button id="shareOpenBtn">Open</button>
+      </div>
+      <div id="shareStatus" style="margin-top:8px;color:#9fb0d6;font-size:13px"></div>
+    </div>
   </div>
 
   <script>
@@ -206,7 +228,15 @@ Pro tip: You can swap colorways without breaking your layout.</textarea></div>
     const preview = document.getElementById('preview');
 
     const refreshBtn = document.getElementById('refresh');
-    const exportBtn = document.getElementById('export');
+    const downloadBtn = document.getElementById('download');
+    const shareBtn = document.getElementById('share');
+
+    const shareModal = document.getElementById('shareModal');
+    const shareLinkInput = document.getElementById('shareLinkInput');
+    const shareCopyBtn = document.getElementById('shareCopyBtn');
+    const shareOpenBtn = document.getElementById('shareOpenBtn');
+    const shareCloseBtn = document.getElementById('shareCloseBtn');
+    const shareStatus = document.getElementById('shareStatus');
 
     // Populate filters
     for (const l of LAYOUTS){
@@ -397,7 +427,7 @@ Pro tip: You can swap colorways without breaking your layout.</textarea></div>
       }
     }
 
-    function exportHtml(){
+    function downloadHtml(){
       const html = emailHTML(selected);
       const blob = new Blob([html], {type:'text/html'});
       const a = document.createElement('a');
@@ -409,13 +439,56 @@ Pro tip: You can swap colorways without breaking your layout.</textarea></div>
       setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
     }
 
+    let __lastShareUrl = null;
+    function shareHtml(){
+      const html = emailHTML(selected);
+      const blob = new Blob([html], {type:'text/html'});
+      const url = URL.createObjectURL(blob);
+      __lastShareUrl = url;
+      shareLinkInput.value = url;
+      shareStatus.textContent = 'Temporary link generated. You can copy or open it now.';
+      shareModal.style.display = 'flex';
+      shareModal.setAttribute('aria-hidden','false');
+      // attempt to copy automatically
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(()=>{
+          shareStatus.textContent = 'Link copied to clipboard (temporary).';
+        }).catch(()=>{/* ignore */});
+      }
+    }
+
+    shareCopyBtn.addEventListener('click', ()=>{
+      const v = shareLinkInput.value;
+      if(!v) return;
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(v).then(()=>{ shareStatus.textContent = 'Copied!'; }).catch(()=>{ shareStatus.textContent = 'Copy failed'; });
+      } else {
+        shareLinkInput.select();
+        try{ document.execCommand('copy'); shareStatus.textContent = 'Copied!'; }catch(e){ shareStatus.textContent = 'Copy failed'; }
+      }
+    });
+
+    shareOpenBtn.addEventListener('click', ()=>{
+      const v = shareLinkInput.value;
+      if(!v) return;
+      window.open(v, '_blank');
+    });
+    shareCloseBtn.addEventListener('click', ()=>{
+      shareModal.style.display = 'none';
+      shareModal.setAttribute('aria-hidden','true');
+      shareStatus.textContent = '';
+      if(__lastShareUrl) { URL.revokeObjectURL(__lastShareUrl); __lastShareUrl = null; }
+    });
+
+    downloadBtn.addEventListener('click', downloadHtml);
+    shareBtn.addEventListener('click', shareHtml);
+    refreshBtn.addEventListener('click', refreshPreview);
+
     document.addEventListener('input', (e)=>{
       if([logoText, headline, subhead, hero, body, ctaText, ctaUrl, footer, unsubscribeUrl].includes(e.target)){
         refreshPreview();
       }
     });
-    refreshBtn.addEventListener('click', refreshPreview);
-    exportBtn.addEventListener('click', exportHtml);
 
     renderGrid();
     selectTemplate(selected);
